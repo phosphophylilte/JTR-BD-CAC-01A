@@ -1,0 +1,1 @@
+pyocd flash -t stm32f407vetx build/rtthread.bin
