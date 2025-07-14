@@ -81,6 +81,10 @@
 /* DFS: device virtual file system */
 
 /* end of DFS: device virtual file system */
+#define RT_USING_FAL
+#define FAL_DEBUG_CONFIG
+#define FAL_DEBUG 1
+#define FAL_PART_HAS_TABLE_CFG
 
 /* Device Drivers */
 
@@ -377,6 +381,7 @@
 #define BSP_USING_UART2
 #define BSP_USING_CAN
 #define BSP_USING_CAN1
+#define BSP_USING_ON_CHIP_FLASH
 /* end of On-chip Peripheral Drivers */
 
 /* Board extended module Drivers */

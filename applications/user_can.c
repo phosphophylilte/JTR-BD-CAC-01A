@@ -5,7 +5,7 @@
  * @Date         2025-04-03 11:51:28
  * @Description  
  * 
- * LastEditTime  2025-04-11 12:11:02
+ * LastEditTime  2025-04-18 12:06:26
  */
 #include <rtthread.h>
 #include <rtdevice.h>
@@ -130,6 +130,7 @@ void userCANInitialize()
     {
         LOG_I("find %s!\n", CAN_DEV_NAME);
     }
+   
 
     /* 初始化 CAN 接收信号量 */
     rt_sem_init(&rx_sem, "rx_sem", 0, RT_IPC_FLAG_FIFO);

@@ -56,6 +56,10 @@ menu "On-chip Peripheral Drivers"
                 default n
         endif
 
+    menuconfig BSP_USING_ON_CHIP_FLASH
+		bool "Enable on-chip FLASH"
+		default n
+
     source "$(BSP_DIR)/libraries/HAL_Drivers/drivers/Kconfig"
 
 endmenu

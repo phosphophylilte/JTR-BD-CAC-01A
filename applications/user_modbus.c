@@ -13,6 +13,7 @@
 #include "protcol.h"
 #include "userconfig.h"
 #include "agile_modbus.h"
+#include <stdlib.h>
 
 
 uint8_t userRegValue[2];
@@ -29,8 +30,6 @@ static void send_thread_entry(void *parameter)
     rt_err_t result;
     rt_uint16_t dataStack;
     // USHORT data[2] = {0};
-    
-
     
     while (1)
     {
@@ -224,3 +223,56 @@ __exit:
     if (tid2)
         rt_thread_delete(tid2);
 }
+
+// void PR0_SpeedCTL_test(int argc, char *argv[])
+// {
+//     if (argc != 3)
+//     {
+//         rt_kprintf("Usage: PR0_SpeedCTL_test <slave addr> <speed(rpm)>\n");
+//         return ;
+//     }
+
+//     uint16_t speed = atoi(argv[1]);
+//     uint16_t slave = atoi(argv[2]);
+
+//     agile_modbus_set_slave(ctx, slave);
+//     rt_thread_delay(5);
+
+//     /* 设定PRO为速度模式 */
+//     agile_modbus_serialize_write_register(ctx, 0x6200, 0x0002);
+//     rt_thread_delay(5);
+
+//     /* 设定PR0速度 */
+//     agile_modbus_serialize_write_register(ctx, 0x6203, speed);
+//     rt_thread_delay(5);
+
+//     /* 设定PR0加速度 */
+//     agile_modbus_serialize_write_register(ctx, 0x6204, 0x0032);
+//     rt_thread_delay(5);
+
+//     /* 设定PR0减速度 */
+//     agile_modbus_serialize_write_register(ctx, 0x6205, 0x0032);
+//     rt_thread_delay(5);
+
+//     /* 设定PR0运行 */
+//     agile_modbus_serialize_write_register(ctx, 0x6202, 0x0010);
+//     rt_thread_delay(5);
+
+// }
+// MSH_CMD_EXPORT(PR0_SpeedCTL_test, Usage: PR0_SpeedCTL_test <slave addr> <speed(rpm)>);
+
+
+// void PR0_SpeedSTOP(int argc, char *argv[])
+// {
+//     if (argc != 2)
+//     {
+//         rt_kprintf("Usage: PR0_SpeedSTOP <slave addr>");
+//     }
+    
+//     uint16_t slave = atoi(argv[1]);
+
+//     agile_modbus_set_slave(ctx, slave);
+//     agile_modbus_serialize_write_register(ctx, 0x6202, 0x0040);
+// }
+// MSH_CMD_EXPORT(PR0_SpeedSTOP, stop motor);
+

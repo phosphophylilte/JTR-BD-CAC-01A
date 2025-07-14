@@ -1,3 +1,12 @@
+/** 
+ * @FilePath     \project\rt-thread\components\fal\inc\fal_cfg.h
+ * @Author       wunna
+ * Version       V1.0.0
+ * @Date         2025-04-17 08:36:44
+ * @Description  
+ * 
+ * LastEditTime  2025-04-18 09:01:05
+ */
 /*
  * Copyright (c) 2006-2018, RT-Thread Development Team
  *
@@ -15,16 +24,16 @@
 #include <board.h>
 
 #define NOR_FLASH_DEV_NAME             "norflash0"
+#define STM32_FLASH_END_ADDRESS        0x080FFFFF
 
 /* ===================== Flash device Configuration ========================= */
-extern const struct fal_flash_dev stm32f2_onchip_flash;
+extern const struct fal_flash_dev stm32f4_onchip_flash;
 extern struct fal_flash_dev nor_flash0;
 
 /* flash device table */
 #define FAL_FLASH_DEV_TABLE                                          \
 {                                                                    \
-    &stm32f2_onchip_flash,                                           \
-    &nor_flash0,                                                     \
+    &stm32f4_onchip_flash,                                           \
 }
 /* ====================== Partition Configuration ========================== */
 #ifdef FAL_PART_HAS_TABLE_CFG

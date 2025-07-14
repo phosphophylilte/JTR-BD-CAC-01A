@@ -5,7 +5,7 @@
  * @Date         2025-04-03 09:57:33
  * @Description  
  * 
- * LastEditTime  2025-04-07 14:47:48
+ * LastEditTime  2025-04-18 09:28:24
  */
 #ifndef __PROTCOL_H__
 #define __PROTCOL_H__
@@ -57,6 +57,9 @@ typedef enum {
     MSG_HD_CHAIN_CTRL = 102, // hd链速控制
     MSG_DEK_CHAIN_CTRL = 103, // 德恩科链速控制
 
+    MSG_LS_POLE_CTRL = 104, //撑杆控制（雷赛）
+    MSG_LS_CHAIN_CTRL = 105, //链速控制（雷赛）
+
 } CanMsgType;
 
 typedef union {
@@ -70,6 +73,15 @@ typedef union {
     uint8_t dataBytes[4];
   } can_msg;
 }CAN_DATA;
+
+typedef struct
+{
+  float target_value;
+  float p_value;
+  float i_value;
+  float d_value;
+}CHAIN_CONTROL_DATA;
+
 
 
 
