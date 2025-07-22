@@ -27,6 +27,7 @@
 #include "userconfig.h"
 #include "protcol.h"
 #include "drv_flash.h"
+#include "agile_modbus.h"
 
 /* ----------------------------- Private Define ----------------------------- */
 #define MCU_CAN_AD0 rt_pin_get("PB.8")
@@ -38,8 +39,6 @@
 #define MCU_CAN_AD6 rt_pin_get("PE.5")
 #define MCU_CAN_AD7 rt_pin_get("PE.6") 
 
-
-
 /* ----------------------------- Variable of CAN ---------------------------- */
 struct rt_messagequeue can_rx_queue;
 struct rt_messagequeue can_tx_queue;
@@ -50,8 +49,10 @@ rt_uint8_t msg_pool[2048];
 rt_uint8_t msg_pool2[2048];
 rt_uint8_t msg_pool3[2048];
 
+extern agile_modbus_rtu_t ctx_rtu;
+extern agile_modbus_t *ctx;
+
 /* --------------------------- Variable of MODBUS --------------------------- */
-// uint8_t slaveAddr = 0;
 void messageQueueInit(void);
 uint8_t board_get_address(void);
 
@@ -60,6 +61,7 @@ int main(void)
 {
     CAN_DATA MessageCAN;
     CAN_DATA MessageHeartBeat;
+    CAN_DATA MessageStack;
 
     rt_pin_mode(rt_pin_get("PB.5"), PIN_MODE_INPUT);
     rt_pin_mode(MCU_CAN_AD0, PIN_MODE_INPUT);
@@ -71,7 +73,8 @@ int main(void)
     rt_pin_mode(MCU_CAN_AD6, PIN_MODE_INPUT);
     rt_pin_mode(MCU_CAN_AD7, PIN_MODE_INPUT);
     
-    
+    int heartTime = 0;
+    int tictack = 0;
     rt_err_t beadResult = 0;
 
     modbus_signal = rt_sem_create("modbus_signal", 1, RT_IPC_FLAG_FIFO);
@@ -89,117 +92,32 @@ int main(void)
 
     while (1)
     {
-        // 发心跳包
-        MessageHeartBeat.can_msg.msgType = MSG_HEARTBEAT;
-        MessageHeartBeat.can_msg.addr = board_get_address();
-        MessageHeartBeat.can_msg.flag = 0;
-        rt_mq_send(&can_tx_queue, MessageHeartBeat.data, MESSAGE_SIZE);
+        // 功能1：发心跳包
+        tictack ++;
+        if (tictack == 20)
+        {
+            MessageHeartBeat.can_msg.msgType = MSG_HEARTBEAT;
+            MessageHeartBeat.can_msg.addr = board_get_address();
+            MessageHeartBeat.can_msg.flag = 0;
+            memcpy(MessageHeartBeat.can_msg.dataBytes, &heartTime, 4);
+            rt_mq_send(&can_tx_queue, MessageHeartBeat.data, MESSAGE_SIZE);
+            tictack = 0;
+        }
 
         if (can_rx_queue.entry != 0)
         {
             rt_mq_recv(&can_rx_queue, MessageCAN.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
             
-            //风机控制
-            if (MessageCAN.can_msg.msgType == MSG_FAN_CTRL)
+            // 功能2：链速&宽窄控制——雷赛
+            if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL)
             {
-                //发modbus报文读取风机频率(uint16_t)
-                if (MessageCAN.can_msg.flag == 1 && MessageCAN.can_msg.dataBytes[0])
-                {
-                    // slaveAddr = MessageCAN.can_msg.dataBytes[0];
-                    rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE); 
-                   
-                }
-
-                //发modbus报文启动风机频率(uint16_t)
-                if (MessageCAN.can_msg.flag == 0 && MessageCAN.can_msg.dataBytes[0])
-                {
-                    // slaveAddr = MessageCAN.can_msg.dataBytes[0];
-                    rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE); 
-                }
-
+                // 扔到modbus队列处理
+                rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE);
             }
 
-            //链速控制
-            if (MessageCAN.can_msg.msgType == MSG_CHAIN_CTRL)
-            {
-                // 读取
-                if (MessageCAN.can_msg.flag == 1)
-                {
-                    float stackSet;
-                    // 测试逻辑：从flash中读取数据的偏移量为 （通道数）*4 + index低位
-                    uint8_t offset = (MessageCAN.can_msg.index >> 4) * 4 + (MessageCAN.can_msg.index & 0x00ff);
-                    stm32_flash_read(FLASH_BASE_ADDRESS, &stackSet, sizeof(float));
-                    
-                    // 返回消息给上位机
-                    CAN_DATA sendData;
-                    sendData.can_msg.msgType = MSG_CHAIN_CTRL;
-                    sendData.can_msg.flag = 1;
-                    sendData.can_msg.index = MessageCAN.can_msg.index;
-                    rt_memcpy(sendData.can_msg.dataBytes, &stackSet, sizeof(float));
-                    
-                    rt_mq_send(&can_tx_queue, sendData.data, MESSAGE_SIZE);
-                }
-
-                // 写入
-                if (MessageCAN.can_msg.flag == 0)
-                {
-                    float stackSet;
-                    rt_memcpy(&stackSet, &MessageCAN.can_msg.dataBytes, sizeof(MessageCAN.can_msg.dataBytes));
-                    // 测试逻辑：往flash中写入数据的偏移量为 （通道数）*4 + index低位
-                    uint8_t offset = (MessageCAN.can_msg.index >> 4) * 4 + (MessageCAN.can_msg.index & 0x00ff);
-                    int writeFlashRes = stm32_flash_write(FLASH_BASE_ADDRESS + offset, &stackSet, sizeof(float));
-                    if (writeFlashRes <= 0)
-                    {
-                        stm32_flash_erase(FLASH_BASE_ADDRESS + offset, sizeof(float));
-                        stm32_flash_write(FLASH_BASE_ADDRESS + offset, &stackSet, sizeof(float));
-                    }
-                    
-                    // 返回消息给上位机
-                    rt_mq_send(&can_tx_queue, MessageCAN.data, MESSAGE_SIZE);                    
-                }
-                
-            }
-            
-            // 链速控制——雷赛
-            // if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL)
-            // {
-            //     // 写逻辑
-            //     if (MessageCAN.can_msg.flag == 0)
-            //     {
-            //         if (MessageCAN.can_msg.index == 1 || 
-            //             MessageCAN.can_msg.index == 2 || 
-            //             MessageCAN.can_msg.index == 4 || 
-            //             MessageCAN.can_msg.index == 5)
-            //         {
-            //             rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE); 
-            //         }
-                    
-            //     }
-            //     // 读逻辑
-            //     else if (MessageCAN.can_msg.flag == 1)
-            //     {
-                    
-            //     }
-                
-                
-            // }
-            
-            
-            
-            
-            // // 测试段 1 
-            // for (int i = 0; i < MESSAGE_SIZE; i++)
-            // {
-            //     rt_kprintf("%d ", MessageCAN.data[i]);
-            // }
-            // rt_kprintf("\n");
-            // rt_kprintf("now queue have %d mess\r\n", can_rx_queue.entry);
-            
         }
         
-
-        
-        rt_thread_mdelay(100);
+        rt_thread_mdelay(50);
     }
 
     return RT_EOK;
@@ -219,7 +137,12 @@ void messageQueueInit(void)
     rt_kprintf("Message Queue Create Succeed\r\n");
 }
 
-
+/*
+* @brief 获取板卡设置地址（拨码）
+* 
+* @param NULL 
+* @return 板卡地址（uint8_t）
+* */
 uint8_t board_get_address(void)
 {
     uint8_t address = 0;

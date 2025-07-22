@@ -53,13 +53,13 @@ static void can_rx_thread(void *parameter)
         rt_device_read(can_dev, 0, &rxmsg, sizeof(rxmsg));
         
         /* 将读取的信息放入消息队列can_rx_queue */
-        if (rxmsg.data[0] == MSG_CHAIN_CTRL || rxmsg.data[0] == MSG_FAN_CTRL)
+        if (rxmsg.data[0] == MSG_LS_CHAIN_CTRL || rxmsg.data[0] == MSG_LS_POLE_CTRL)
         {
             rt_mq_send(&can_rx_queue, rxmsg.data, MESSAGE_SIZE);
         }
         
-        /* 延时1ms，减小仲裁负担 */
-        rt_thread_mdelay(100);
+        /* 延时10ms，减小仲裁负担 */
+        rt_thread_mdelay(10);
     }
 }
 
@@ -95,7 +95,7 @@ static void can_tx_thread(void *parameter)
                 txmsg.data[i] = canTxBuffer.data[i];
             }
             
-            rt_device_write(can_dev, 0, &txmsg, sizeof(txmsg));
+            rt_device_write(can_dev, 0, &txmsg, sizeof(txmsg)); 
         }
 
         rt_thread_mdelay(100);
@@ -130,7 +130,6 @@ void userCANInitialize()
     {
         LOG_I("find %s!\n", CAN_DEV_NAME);
     }
-   
 
     /* 初始化 CAN 接收信号量 */
     rt_sem_init(&rx_sem, "rx_sem", 0, RT_IPC_FLAG_FIFO);
@@ -138,6 +137,8 @@ void userCANInitialize()
     /* 以中断接收及发送方式打开 CAN 设备 */
     res = rt_device_open(can_dev, RT_DEVICE_FLAG_INT_TX | RT_DEVICE_FLAG_INT_RX);
     RT_ASSERT(res == RT_EOK);
+
+    rt_device_control(can_dev, RT_CAN_CMD_SET_BAUD, (void *)CAN250kBaud);
 
     /* 设置接收回调函数 */
     rt_device_set_rx_indicate(can_dev, can_rx_call);

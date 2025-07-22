@@ -23,11 +23,10 @@
 
 #define MESSAGE_SIZE                8
 
-#define MODBUS_BAUD_RATE            115200
+#define MODBUS_BAUD_RATE            57600
 #define MODBUS_PORT_NUM             "uart2"
 #define MODBUS_PORT_PARITY          0
-#define MODBUS_TARGET_HOLDING_REG   3099
- 
+
 #define FLASH_BASE_ADDRESS          0x080C0000
 
 /* ---------------------------- Private Variable ---------------------------- */
@@ -44,6 +43,14 @@ extern rs485_inst_t *hinst;
 /* ------------------------------ User Function ----------------------------- */
 void userCANInitialize();
 void userModbusInitialize();
+
+typedef union {
+  int data_32t;
+  int16_t data_16t[2];
+  int8_t data_8t[4];
+  int8_t val[4];
+}DataStack;
+
 
 
 #endif // !__USERCONFIG_H__
