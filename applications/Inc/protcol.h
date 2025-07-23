@@ -57,8 +57,7 @@ typedef enum {
     MSG_HD_CHAIN_CTRL = 102, // hd链速控制
     MSG_DEK_CHAIN_CTRL = 103, // 德恩科链速控制
 
-    MSG_LS_POLE_CTRL = 104, //撑杆控制（雷赛）
-    MSG_LS_CHAIN_CTRL = 105, //链速控制（雷赛）
+    MSG_LS_CHAIN_CTRL = 104, // 雷赛电机控制
 
 } CanMsgType;
 

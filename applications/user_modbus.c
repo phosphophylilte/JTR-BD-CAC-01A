@@ -50,14 +50,39 @@ static void send_thread_entry(void *parameter)
             {   
                 switch (messageStack.can_msg.index)
                 {
-                case 7: // 读取实时速度
+                case 5: // 读取当前位置（单位：转）
+                    data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x0B18);
+                    data_stack.data_16t[1] = modbus_read16t_till_recv(slaveAddr, 0x0B19);
+
+                    /* 将modbus返回的位置值塞到CAN TX队列 */
+                    CanSendMess.can_msg.addr = slaveAddr;
+                    CanSendMess.can_msg.flag = 1;
+                    CanSendMess.can_msg.index = 5;
+                    CanSendMess.can_msg.msgType = MSG_LS_CHAIN_CTRL;
+                    memcpy(CanSendMess.can_msg.dataBytes, data_stack.val, 4);
+
+                    rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
+                    break;
+
+                case 6: // 读取当前转速（单位：rpm）
                     // modbus_read16t_till_recv(slaveAddr, 0x0B09, &data_stack.data_16t[0]);
                     data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x0B09);
                     
-                    
-                    
                     /* 将modbus返回的速度值塞到CAN TX队列 */
-                    
+                    CanSendMess.can_msg.addr = slaveAddr;
+                    CanSendMess.can_msg.flag = 1;
+                    CanSendMess.can_msg.index = 6;
+                    CanSendMess.can_msg.msgType = MSG_LS_CHAIN_CTRL;
+                    memcpy(CanSendMess.can_msg.dataBytes, data_stack.val, 4);
+
+                    rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
+                    break;
+
+
+                case 7: // 读取实时状态
+                    data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x0B05);
+
+                    /* 将modbus返回的状态值塞到CAN TX队列 */
                     CanSendMess.can_msg.addr = slaveAddr;
                     CanSendMess.can_msg.flag = 1;
                     CanSendMess.can_msg.index = 7;
@@ -67,43 +92,16 @@ static void send_thread_entry(void *parameter)
                     rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
                     break;
 
-                case 8: // 读取实时位置
-                    data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x0B18);
-                    data_stack.data_16t[1] = modbus_read16t_till_recv(slaveAddr, 0x0B19);
-                    
-                    /* 将modbus返回的位置值塞到CAN TX队列 */
-                    CanSendMess.can_msg.addr = slaveAddr;
-                    CanSendMess.can_msg.flag = 1;
-                    CanSendMess.can_msg.index = 8;
-                    CanSendMess.can_msg.msgType = MSG_LS_CHAIN_CTRL;
-                    memcpy(CanSendMess.can_msg.dataBytes, data_stack.val, 4);
-
-                    rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
-                    break;
-
-                case 9: // 读取实时状态
-                    data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x0B05);
-
-                    /* 将modbus返回的状态值塞到CAN TX队列 */
-                    CanSendMess.can_msg.addr = slaveAddr;
-                    CanSendMess.can_msg.flag = 1;
-                    CanSendMess.can_msg.index = 9;
-                    CanSendMess.can_msg.msgType = MSG_LS_CHAIN_CTRL;
-                    memcpy(CanSendMess.can_msg.dataBytes, data_stack.val, 4);
-
-                    rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
-                    break;
-
-                case 10: // 读取报警
+                case 8: // 报警读取(屏蔽高四位)
                     data_stack.data_16t[0] = modbus_read16t_till_recv(slaveAddr, 0x2203);
 
                     /* 将modbus返回的报警值塞到CAN TX队列 */
                     CanSendMess.can_msg.addr = slaveAddr;
                     CanSendMess.can_msg.flag = 1;
-                    CanSendMess.can_msg.index = 10;
+                    CanSendMess.can_msg.index = 8;
                     CanSendMess.can_msg.msgType = MSG_LS_CHAIN_CTRL;
+                    data_stack.data_16t[0] &= 0x0FFF;
                     memcpy(CanSendMess.can_msg.dataBytes, data_stack.val, 4);
-                
 
                     rt_mq_send(&can_tx_queue, CanSendMess.data, MESSAGE_SIZE);
                     break;
@@ -118,32 +116,22 @@ static void send_thread_entry(void *parameter)
                 // rt_sem_take(modbus_signal, 2000);
                 switch (messageStack.can_msg.index)
                 {
-                case 1: // 模式设置
+                case 0: // 电机控制
                     memcpy(&mode, &messageStack.can_msg.dataBytes[0], 2);
-                    if (mode == 257) // 速度启动模式
+                    if (mode == 2) // 启动电机
                     { 
-                        // // 设置速度模式
-                        // modbus_send_till_recv(messageStack.can_msg.addr,
-                        //                         0x6200,
-                        //                         0x0002);
+                        
 
-                        // 触发走速度
                         modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
                                                 0x0010);
 
                     }
-                    if (mode == 514)
+                    if (mode == 8) //停止电机
                     {
-                        // // 设置位置模式
-                        // modbus_send_till_recv(messageStack.can_msg.addr,
-                        //                         0x6200,
-                        //                         0x0001);
-
-                        // 触发走位置
                         modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
-                                                0x0010);
+                                                0x0040);
                     }
                     
                     else if (mode == 4) // 回零启动
@@ -163,26 +151,25 @@ static void send_thread_entry(void *parameter)
                                                 0x6002,
                                                 0x0020);
                     }
-                    else if (mode == 8) // 急停
+                    break;
+
+                case 1: // 设置模式
+                    memcpy(&mode, &messageStack.can_msg.dataBytes[0], 2);
+                    if (mode == 0) // 位置模式
                     {
-                        /* 触发急停 */
+                        // 设置位置模式
                         modbus_send_till_recv(messageStack.can_msg.addr,
-                                                0x6002,
-                                                0x0040);
+                                                0x6200,
+                                                0x0001);
                     }
-                    break;
-
-                case 2: // 设置速度
-                    // memcpy(&data_stack.data_16t[0], &messageStack.can_msg.dataBytes[0], 2);
-                    data_stack.data_8t[0] = messageStack.can_msg.dataBytes[0];
-                    data_stack.data_8t[1] = messageStack.can_msg.dataBytes[1];
-                    modbus_send_till_recv(messageStack.can_msg.addr,
-                                            0x6203,
-                                            (uint16_t)data_stack.data_16t[0]);
-                    // rt_kprintf("speed 0x%x\n", (uint16_t)data_stack.data_16t[0]);
-                    break;
-
-                case 3: // 设置回零模式
+                    else if (mode == 1) // 速度模式
+                    {
+                        modbus_send_till_recv(messageStack.can_msg.addr,
+                                                0x6200,
+                                                0x0002);
+                    }
+                    
+                case 2: // 设置回零模式
                     zero_mode = messageStack.can_msg.dataBytes[0];
                     if (zero_mode == 1)
                     {
@@ -197,8 +184,20 @@ static void send_thread_entry(void *parameter)
                                                 0x0004);
                     }
                     break;
+
+                case 3: // 设置加速度
+                    memcpy(&data_stack.data_16t[0], &messageStack.can_msg.dataBytes[0], 2);
+                    modbus_send_till_recv(messageStack.can_msg.addr,
+                                                0x620C,
+                                                data_stack.data_16t[0]);
+
+                case 4: // 设置减速度
+                    memcpy(&data_stack.data_16t[0], &messageStack.can_msg.dataBytes[0], 2);
+                    modbus_send_till_recv(messageStack.can_msg.addr,
+                                                0x620D,
+                                                data_stack.data_16t[0]);
                 
-                case 6: // 设置电机位置
+                case 5: // 设置电机位置
                     memcpy(&data_stack.data_32t, messageStack.can_msg.dataBytes, 4);
                     // data_stack.data_32t *= 10000;
                     // data_stack.data_32t = swap32Big2Little(data_stack.data_32t); 
@@ -211,17 +210,24 @@ static void send_thread_entry(void *parameter)
                                             0x6202,
                                             data_stack.data_16t[0]);
                     }
-                    
                     break;
-                    
+
+                case 6: // 设置电机转速
+                    // memcpy(&data_stack.data_16t[0], messageStack.can_msg.dataBytes[0], 2);
+                    data_stack.data_8t[0] = messageStack.can_msg.dataBytes[0];
+                    data_stack.data_8t[1] = messageStack.can_msg.dataBytes[1];
+                    modbus_send_till_recv(messageStack.can_msg.addr,
+                                            0x6203,
+                                            (uint16_t)data_stack.data_16t[0]);
+                    break;
+
                 default:
                     break;
                 }
                 
                 // rt_sem_release(modbus_signal);
-                
             }
-        
+
             data_stack.data_32t = 0;
         }
     }

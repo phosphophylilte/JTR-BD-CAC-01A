@@ -53,7 +53,7 @@ static void can_rx_thread(void *parameter)
         rt_device_read(can_dev, 0, &rxmsg, sizeof(rxmsg));
         
         /* 将读取的信息放入消息队列can_rx_queue */
-        if (rxmsg.data[0] == MSG_LS_CHAIN_CTRL || rxmsg.data[0] == MSG_LS_POLE_CTRL)
+        if (rxmsg.data[0] == MSG_LS_CHAIN_CTRL)
         {
             rt_mq_send(&can_rx_queue, rxmsg.data, MESSAGE_SIZE);
         }
