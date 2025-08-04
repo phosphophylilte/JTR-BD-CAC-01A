@@ -108,8 +108,11 @@ int main(void)
         {
             rt_mq_recv(&can_rx_queue, MessageCAN.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
             
-            // 功能2：链速&宽窄控制——雷赛
-            if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL)
+            // 功能2：链速&宽窄控制——雷赛 && 科睿源信息获取
+            if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL || 
+                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_VOLTAGE || //获取电源输出电压
+                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_CURRENT || //获取电源输出电流
+                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_POWER) //获取电源输出功率
             {
                 // 扔到modbus队列处理
                 rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE);

@@ -15,6 +15,7 @@
 #include "agile_modbus.h"
 #include <stdlib.h>
 
+// 功能函数：大小端转换
 #define swap32Big2Little(x)    (   ( (x)&(0x0000ffff) ) << 32 |  ( (x)&(0xffff0000) >> 32   ))
 
 uint8_t userRegValue[2];
@@ -24,7 +25,7 @@ agile_modbus_rtu_t ctx_rtu;
 agile_modbus_t *ctx;
 
 int modbus_send_till_recv(uint16_t slave_addr, uint16_t reg_addr, uint16_t val);
-int modbus_read16t_till_recv(uint16_t slave_addr, uint16_t reg_addr);
+uint16_t modbus_read16t_till_recv(uint16_t slave_addr, uint16_t reg_addr);
 void userModbusInitialize(void);
 
 static void send_thread_entry(void *parameter)
@@ -45,8 +46,8 @@ static void send_thread_entry(void *parameter)
             uint16_t zero_mode = 0;
             int position = 0;
             uint16_t slaveAddr = messageStack.can_msg.addr;
-            // flag == 1: 读取操作
-            if (messageStack.can_msg.flag == 1)
+            // flag == 1: LS电机读取操作
+            if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 1)
             {   
                 switch (messageStack.can_msg.index)
                 {
@@ -109,9 +110,10 @@ static void send_thread_entry(void *parameter)
                 default:
                     break;
                 }
+                continue;
             }
-            // flag == 0: 写操作
-            else if (messageStack.can_msg.flag == 0)
+            // flag == 0: LS电机写操作
+            else if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 0)
             {
                 // rt_sem_take(modbus_signal, 2000);
                 switch (messageStack.can_msg.index)
@@ -120,8 +122,6 @@ static void send_thread_entry(void *parameter)
                     memcpy(&mode, &messageStack.can_msg.dataBytes[0], 2);
                     if (mode == 2) // 启动电机
                     { 
-                        
-
                         modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
                                                 0x0010);
@@ -145,7 +145,7 @@ static void send_thread_entry(void *parameter)
                         // modbus_send_till_recv(messageStack.can_msg.addr,
                         //                         0x6010,
                         //                         0x001E);
-
+                        
                         /* 触发回零 */
                         modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
@@ -224,8 +224,62 @@ static void send_thread_entry(void *parameter)
                 default:
                     break;
                 }
-                
+                continue;
                 // rt_sem_release(modbus_signal);
+            }
+            // MSG_MODBUS_POWER_READ_CURRENT：电源电流读取
+            else if (messageStack.can_msg.msgType == MSG_MODBUS_POWER_READ_CURRENT && messageStack.can_msg.flag == 1)
+            {
+                rt_thread_delay(1); // 延时1ms，确保线程有时间调度
+                rt_uint16_t input_register[1] = {0};
+
+                agile_modbus_set_slave(ctx, messageStack.can_msg.index);
+                int send_len = agile_modbus_serialize_read_input_registers(ctx, 0x33, 2);
+                int read_len = rs485_send_then_recv(hinst, ctx->send_buf, send_len, ctx->read_buf, ctx->read_bufsz);
+
+                int rc = agile_modbus_deserialize_read_registers(ctx, read_len, input_register);
+                
+                messageStack.can_msg.dataBytes[0] = input_register[0];
+                messageStack.can_msg.dataBytes[1] = input_register[0] >> 8;
+                rt_mq_send(&can_tx_queue, messageStack.data, MESSAGE_SIZE);
+                rt_thread_delay(1); 
+                continue;
+            }
+            // MSG_MODBUS_POWER_READ_VOLTAGE：电源电压读取
+            else if (messageStack.can_msg.msgType == MSG_MODBUS_POWER_READ_VOLTAGE && messageStack.can_msg.flag == 1)
+            {
+                rt_thread_delay(1); // 延时1ms，确保线程有时间调度
+                rt_uint16_t input_register[1] = {0};
+
+                agile_modbus_set_slave(ctx, messageStack.can_msg.index);
+                int send_len = agile_modbus_serialize_read_input_registers(ctx, 0x32, 2);
+                int read_len = rs485_send_then_recv(hinst, ctx->send_buf, send_len, ctx->read_buf, ctx->read_bufsz);
+
+                int rc = agile_modbus_deserialize_read_registers(ctx, read_len, input_register);
+                
+                messageStack.can_msg.dataBytes[0] = input_register[0];
+                messageStack.can_msg.dataBytes[1] = input_register[0] >> 8;
+                rt_mq_send(&can_tx_queue, messageStack.data, MESSAGE_SIZE);
+                rt_thread_delay(1); 
+                continue;
+            }
+            // MSG_MODBUS_POWER_READ_POWER：功率读取
+            else if (messageStack.can_msg.msgType == MSG_MODBUS_POWER_READ_POWER && messageStack.can_msg.flag == 1)
+            {
+                rt_thread_delay(1); // 延时1ms，确保线程有时间调度
+                rt_uint16_t input_register[1] = {0};
+
+                agile_modbus_set_slave(ctx, messageStack.can_msg.index);
+                int send_len = agile_modbus_serialize_read_input_registers(ctx, 0x34, 2);
+                int read_len = rs485_send_then_recv(hinst, ctx->send_buf, send_len, ctx->read_buf, ctx->read_bufsz);
+
+                int rc = agile_modbus_deserialize_read_registers(ctx, read_len, input_register);
+                
+                messageStack.can_msg.dataBytes[0] = input_register[0];
+                messageStack.can_msg.dataBytes[1] = input_register[0] >> 8;
+                rt_mq_send(&can_tx_queue, messageStack.data, MESSAGE_SIZE);
+                rt_thread_delay(1); 
+                continue;
             }
 
             data_stack.data_32t = 0;
@@ -251,7 +305,7 @@ void userModbusInitialize()
     hinst = rs485_create(MODBUS_PORT_NUM, MODBUS_BAUD_RATE, MODBUS_PORT_PARITY, -1, 0);
     rs485_config(hinst, MODBUS_BAUD_RATE, 8, 0, 1);
 
-    rs485_set_recv_tmo(hinst, 50);
+    rs485_set_recv_tmo(hinst, 100);
     if (rs485_connect(hinst) != RT_EOK)
     {
         rs485_destory(hinst);
@@ -321,7 +375,7 @@ int modbus_send_till_recv(uint16_t slave_addr, uint16_t reg_addr, uint16_t val)
 * @param reg_addr 寄存器地址
 * @param 8stack 接收读取值变量的指针
 * */
-int modbus_read16t_till_recv(uint16_t slave_addr, uint16_t reg_addr)
+uint16_t modbus_read16t_till_recv(uint16_t slave_addr, uint16_t reg_addr)
 {
     // 从站ID为dataBytes[0]
     // rt_sem_take(modbus_signal, 2000);
