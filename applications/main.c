@@ -99,6 +99,7 @@ int main(void)
             MessageHeartBeat.can_msg.msgType = MSG_HEARTBEAT;
             MessageHeartBeat.can_msg.addr = board_get_address();
             MessageHeartBeat.can_msg.flag = 0;
+            heartTime ++;
             memcpy(MessageHeartBeat.can_msg.dataBytes, &heartTime, 4);
             rt_mq_send(&can_tx_queue, MessageHeartBeat.data, MESSAGE_SIZE);
             tictack = 0;

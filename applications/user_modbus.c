@@ -305,7 +305,7 @@ void userModbusInitialize()
     hinst = rs485_create(MODBUS_PORT_NUM, MODBUS_BAUD_RATE, MODBUS_PORT_PARITY, -1, 0);
     rs485_config(hinst, MODBUS_BAUD_RATE, 8, 0, 1);
 
-    rs485_set_recv_tmo(hinst, 100);
+    rs485_set_recv_tmo(hinst, 500);
     if (rs485_connect(hinst) != RT_EOK)
     {
         rs485_destory(hinst);
