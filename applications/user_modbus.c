@@ -46,6 +46,7 @@ static void send_thread_entry(void *parameter)
             uint16_t zero_mode = 0;
             int position = 0;
             uint16_t slaveAddr = messageStack.can_msg.addr;
+
             // flag == 1: LS电机读取操作
             if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 1)
             {   
@@ -115,6 +116,7 @@ static void send_thread_entry(void *parameter)
             // flag == 0: LS电机写操作
             else if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 0)
             {
+                int sendFlag = 0;
                 // rt_sem_take(modbus_signal, 2000);
                 switch (messageStack.can_msg.index)
                 {
@@ -122,14 +124,14 @@ static void send_thread_entry(void *parameter)
                     memcpy(&mode, &messageStack.can_msg.dataBytes[0], 2);
                     if (mode == 2) // 启动电机
                     { 
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
                                                 0x0010);
 
                     }
                     if (mode == 8) //停止电机
                     {
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
                                                 0x0040);
                     }
@@ -147,7 +149,7 @@ static void send_thread_entry(void *parameter)
                         //                         0x001E);
                         
                         /* 触发回零 */
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6002,
                                                 0x0020);
                     }
@@ -158,13 +160,13 @@ static void send_thread_entry(void *parameter)
                     if (mode == 0) // 位置模式
                     {
                         // 设置位置模式
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6200,
                                                 0x0001);
                     }
                     else if (mode == 1) // 速度模式
                     {
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x6200,
                                                 0x0002);
                     }
@@ -173,13 +175,13 @@ static void send_thread_entry(void *parameter)
                     zero_mode = messageStack.can_msg.dataBytes[0];
                     if (zero_mode == 1)
                     {
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x600A,
                                                 0x0005);
                     }
                     else if (zero_mode == 2)
                     {
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x600A,
                                                 0x0004);
                     }
@@ -187,13 +189,13 @@ static void send_thread_entry(void *parameter)
 
                 case 3: // 设置加速度
                     memcpy(&data_stack.data_16t[0], &messageStack.can_msg.dataBytes[0], 2);
-                    modbus_send_till_recv(messageStack.can_msg.addr,
+                    sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x620C,
                                                 data_stack.data_16t[0]);
 
                 case 4: // 设置减速度
                     memcpy(&data_stack.data_16t[0], &messageStack.can_msg.dataBytes[0], 2);
-                    modbus_send_till_recv(messageStack.can_msg.addr,
+                    sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                                 0x620D,
                                                 data_stack.data_16t[0]);
                 
@@ -206,7 +208,7 @@ static void send_thread_entry(void *parameter)
                                             data_stack.data_16t[1]) == 0)
                     {
                         rt_thread_mdelay(10);
-                        modbus_send_till_recv(messageStack.can_msg.addr,
+                        sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                             0x6202,
                                             data_stack.data_16t[0]);
                     }
@@ -216,7 +218,7 @@ static void send_thread_entry(void *parameter)
                     // memcpy(&data_stack.data_16t[0], messageStack.can_msg.dataBytes[0], 2);
                     data_stack.data_8t[0] = messageStack.can_msg.dataBytes[0];
                     data_stack.data_8t[1] = messageStack.can_msg.dataBytes[1];
-                    modbus_send_till_recv(messageStack.can_msg.addr,
+                    sendFlag = modbus_send_till_recv(messageStack.can_msg.addr,
                                             0x6203,
                                             (uint16_t)data_stack.data_16t[0]);
                     break;
@@ -224,6 +226,13 @@ static void send_thread_entry(void *parameter)
                 default:
                     break;
                 }
+
+                // 若Modbus写操作成功，将CAN报文原样返回
+                if (sendFlag == 0)
+                {
+                    rt_mq_send(&can_tx_queue, messageStack.data, MESSAGE_SIZE);
+                }
+                
                 continue;
                 // rt_sem_release(modbus_signal);
             }

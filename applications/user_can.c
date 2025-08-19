@@ -53,13 +53,18 @@ static void can_rx_thread(void *parameter)
         rt_device_read(can_dev, 0, &rxmsg, sizeof(rxmsg));
         
         /* 将读取的信息放入消息队列can_rx_queue */
-        if (rxmsg.data[0] == MSG_LS_CHAIN_CTRL || rxmsg.data[0] == MSG_MODBUS_POWER_READ_VOLTAGE || rxmsg.data[0] == MSG_MODBUS_POWER_READ_CURRENT || rxmsg.data[0] == MSG_MODBUS_POWER_READ_POWER)
+        if (rxmsg.data[0] == MSG_LS_CHAIN_CTRL || 
+            rxmsg.data[0] == MSG_MODBUS_POWER_READ_VOLTAGE || 
+            rxmsg.data[0] == MSG_MODBUS_POWER_READ_CURRENT || 
+            rxmsg.data[0] == MSG_MODBUS_POWER_READ_POWER)
         {
             rt_mq_send(&can_rx_queue, rxmsg.data, MESSAGE_SIZE);
         }
+        else
+        {
+            continue;
+        }
         
-        /* 延时10ms，减小仲裁负担 */
-        rt_thread_mdelay(10);
     }
 }
 
@@ -81,7 +86,7 @@ static void can_tx_thread(void *parameter)
         res = rt_mq_recv(&can_tx_queue, &canTxBuffer, MESSAGE_SIZE, RT_WAITING_FOREVER);
         if(res)
         {
-            txmsg.id = 0x00;              /* ID 为 0x00 */
+            txmsg.id = board_get_address();              /* ID 为 0x00 */
             txmsg.ide = RT_CAN_STDID;     /* 标准格式 */
             txmsg.rtr = RT_CAN_DTR;       /* 数据帧 */
             txmsg.rsv = 0;

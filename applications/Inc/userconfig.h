@@ -43,6 +43,7 @@ extern rs485_inst_t *hinst;
 /* ------------------------------ User Function ----------------------------- */
 void userCANInitialize();
 void userModbusInitialize();
+uint8_t board_get_address(void);
 
 typedef union {
   int data_32t;
