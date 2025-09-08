@@ -43,7 +43,6 @@ INCLUDE_DIRECTORIES(
 	libraries/HAL_Drivers
 	libraries/HAL_Drivers/CMSIS/Include
 	rt-thread/components/fal/inc
-	rt-thread/components/finsh
 	.
 	rt-thread/include
 	rt-thread/libcpu/arm/common
@@ -68,14 +67,14 @@ ADD_DEFINITIONS(
 )
 
 SET(PROJECT_SOURCES
+	packages/agile_modbus-v1.1.2/src/agile_modbus_tcp.c
+	packages/agile_modbus-v1.1.2/src/agile_modbus_rtu.c
 	packages/agile_modbus-v1.1.2/util/agile_modbus_slave_util.c
 	packages/agile_modbus-v1.1.2/src/agile_modbus.c
-	packages/agile_modbus-v1.1.2/src/agile_modbus_rtu.c
-	packages/agile_modbus-v1.1.2/src/agile_modbus_tcp.c
+	applications/main.c
+	applications/user_can.c
 	applications/user_flash.c
 	applications/user_modbus.c
-	applications/user_can.c
-	applications/main.c
 	rt-thread/components/libc/compilers/common/cctype.c
 	rt-thread/components/libc/compilers/common/cstdlib.c
 	rt-thread/components/libc/compilers/common/cstring.c
@@ -83,12 +82,12 @@ SET(PROJECT_SOURCES
 	rt-thread/components/libc/compilers/common/cunistd.c
 	rt-thread/components/libc/compilers/common/cwchar.c
 	rt-thread/components/libc/compilers/newlib/syscalls.c
-	packages/crclib-v1.02/src/crc16_ex.c
-	packages/crclib-v1.02/src/crc8_ex.c
-	packages/crclib-v1.02/src/crc8.c
-	packages/crclib-v1.02/src/crc16.c
-	packages/crclib-v1.02/src/crc16_ex_sample.c
 	packages/crclib-v1.02/src/crc32_ex.c
+	packages/crclib-v1.02/src/crc8.c
+	packages/crclib-v1.02/src/crc16_ex_sample.c
+	packages/crclib-v1.02/src/crc8_ex.c
+	packages/crclib-v1.02/src/crc16_ex.c
+	packages/crclib-v1.02/src/crc16.c
 	packages/crclib-v1.02/src/crc32.c
 	rt-thread/components/drivers/can/can.c
 	rt-thread/components/drivers/core/device.c
@@ -111,15 +110,11 @@ SET(PROJECT_SOURCES
 	libraries/HAL_Drivers/drivers/drv_usart.c
 	libraries/HAL_Drivers/drv_common.c
 	libraries/STM32F4xx_HAL/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/startup_stm32f407xx.s
-	rt-thread/components/fal/src/fal_rtt.c
-	rt-thread/components/fal/src/fal.c
-	rt-thread/components/fal/src/fal_flash.c
-	rt-thread/components/fal/src/fal_flash_stm32f2_port.c
 	rt-thread/components/fal/src/fal_partition.c
-	rt-thread/components/finsh/msh.c
-	rt-thread/components/finsh/shell.c
-	rt-thread/components/finsh/msh_parse.c
-	rt-thread/components/finsh/cmd.c
+	rt-thread/components/fal/src/fal_flash_stm32f2_port.c
+	rt-thread/components/fal/src/fal_flash.c
+	rt-thread/components/fal/src/fal.c
+	rt-thread/components/fal/src/fal_rtt.c
 	rt-thread/src/clock.c
 	rt-thread/src/components.c
 	rt-thread/src/cpu_up.c
@@ -141,31 +136,31 @@ SET(PROJECT_SOURCES
 	rt-thread/libcpu/arm/common/showmem.c
 	rt-thread/libcpu/arm/cortex-m4/context_gcc.S
 	rt-thread/libcpu/arm/cortex-m4/cpuport.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
-	libraries/STM32F4xx_HAL/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
+	libraries/STM32F4xx_HAL/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cec.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cec.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rng.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_crc.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
-	packages/rs485-v1.06/src/rs485_test.c
 	packages/rs485-v1.06/src/rs485_sample_master.c
-	packages/rs485-v1.06/src/rs485_sample_slave.c
 	packages/rs485-v1.06/src/rs485.c
+	packages/rs485-v1.06/src/rs485_sample_slave.c
+	packages/rs485-v1.06/src/rs485_test.c
 	packages/rt_vsnprintf_full-latest/rt_vsnprintf.c
 	rt-thread/components/utilities/ulog/ulog.c
 	rt-thread/components/utilities/ulog/backend/console_be.c
