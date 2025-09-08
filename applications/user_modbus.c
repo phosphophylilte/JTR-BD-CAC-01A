@@ -38,9 +38,11 @@ static void send_thread_entry(void *parameter)
     
     while (1)
     {
-        if (modbus_tx_queue.entry != 0)
+        // if (modbus_tx_queue.entry != 0)
+        if(can_rx_queue.entry != 0)
         {
-            rt_mq_recv(&modbus_tx_queue, messageStack.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
+            // rt_mq_recv(&modbus_tx_queue, messageStack.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
+            rt_mq_recv(&can_rx_queue, messageStack.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
             uint16_t mode = 0;
             int16_t speed = 0;
             uint16_t zero_mode = 0;

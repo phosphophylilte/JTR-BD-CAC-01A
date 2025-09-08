@@ -93,36 +93,36 @@ int main(void)
     while (1)
     {
         // 功能1：发心跳包
-        tictack ++;
-        if (tictack == 20)
-        {
-            MessageHeartBeat.can_msg.msgType = MSG_HEARTBEAT;
-            MessageHeartBeat.can_msg.addr = board_get_address();
-            MessageHeartBeat.can_msg.flag = 0;
+        // tictack ++;
+        // if (tictack == 20)
+        // {
+        MessageHeartBeat.can_msg.msgType = MSG_HEARTBEAT;
+        MessageHeartBeat.can_msg.addr = board_get_address();
+        MessageHeartBeat.can_msg.flag = 0;
             
-            heartTime ++;
-            memcpy(MessageHeartBeat.can_msg.dataBytes, &heartTime, 4);
-            rt_mq_send(&can_tx_queue, MessageHeartBeat.data, MESSAGE_SIZE);
-            tictack = 0;
-        }
+        heartTime ++;
+        memcpy(MessageHeartBeat.can_msg.dataBytes, &heartTime, 4);
+        rt_mq_send(&can_tx_queue, MessageHeartBeat.data, MESSAGE_SIZE);
+        // tictack = 0;
+        // }
 
-        if (can_rx_queue.entry != 0)
-        {
-            rt_mq_recv(&can_rx_queue, MessageCAN.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
+        // if (can_rx_queue.entry != 0)
+        // {
+        //     rt_mq_recv(&can_rx_queue, MessageCAN.data, MESSAGE_SIZE, RT_WAITING_FOREVER);
             
-            // 功能2：链速&宽窄控制——雷赛 && 科睿源信息获取
-            if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL || 
-                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_VOLTAGE || //获取电源输出电压
-                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_CURRENT || //获取电源输出电流
-                MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_POWER) //获取电源输出功率
-            {
-                // 扔到modbus队列处理
-                rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE);
-            }
+        //     // 功能2：链速&宽窄控制——雷赛 && 科睿源信息获取
+        //     if (MessageCAN.can_msg.msgType == MSG_LS_CHAIN_CTRL || 
+        //         MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_VOLTAGE || //获取电源输出电压
+        //         MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_CURRENT || //获取电源输出电流
+        //         MessageCAN.can_msg.msgType == MSG_MODBUS_POWER_READ_POWER) //获取电源输出功率
+        //     {
+        //         // 扔到modbus队列处理
+        //         rt_mq_send(&modbus_tx_queue, MessageCAN.data, MESSAGE_SIZE);
+        //     }
 
-        }
+        // }
         
-        rt_thread_mdelay(50);
+        rt_thread_mdelay(1000);
     }
 
     return RT_EOK;
@@ -132,9 +132,9 @@ void messageQueueInit(void)
 {
     rt_err_t mq_create_res = rt_mq_init(&can_rx_queue, "CAN_Rx_quece", &msg_pool[0], MESSAGE_SIZE, sizeof(msg_pool), RT_IPC_FLAG_FIFO);
     rt_err_t mq_create_res2 = rt_mq_init(&can_tx_queue, "CAN_Tx_quece", &msg_pool2[0], MESSAGE_SIZE, sizeof(msg_pool2), RT_IPC_FLAG_FIFO);
-    rt_err_t mq_create_res3 = rt_mq_init(&modbus_tx_queue, "MODBUS_Tx_quece", &msg_pool3[0], MESSAGE_SIZE, sizeof(msg_pool3), RT_IPC_FLAG_FIFO);
+    // rt_err_t mq_create_res3 = rt_mq_init(&modbus_tx_queue, "MODBUS_Tx_quece", &msg_pool3[0], MESSAGE_SIZE, sizeof(msg_pool3), RT_IPC_FLAG_FIFO);
     // rt_err_t mq_create_res4 = rt_mq_init(&can_tx_queue, "CAN_Tx_quece", &msg_pool2[0], sizeof(CAN_DATA), sizeof(msg_pool2), RT_IPC_FLAG_FIFO);
-    if (mq_create_res != RT_EOK || mq_create_res2 != RT_EOK || mq_create_res3 != RT_EOK)
+    if (mq_create_res != RT_EOK || mq_create_res2 != RT_EOK)
     {
         rt_kprintf("Init message queue of CAN failed!\r\n");
         return ;
