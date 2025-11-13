@@ -47,7 +47,21 @@ static void send_thread_entry(void *parameter)
             int16_t speed = 0;
             uint16_t zero_mode = 0;
             int position = 0;
+            int sendFlag = 0;
             uint16_t slaveAddr = messageStack.can_msg.addr;
+
+            // 2025-11-12：研蓝电机————设置（写操作）
+            // 模式选择
+            if (messageStack.can_msg.msgType == MSG_MODBUS_MOTOR_REG6000 && messageStack.can_msg.flag == 0)
+            {
+                memcpy(&data_stack.data_16t[0], messageStack.can_msg.dataBytes[0], 2);
+                sendFlag = modbus_send_till_recv(messageStack.can_msg.index,
+                                                 0x6000,
+                                                 data_stack.data_16t[0]);
+            }
+            
+
+            // flag == 0：研蓝电机写操作
 
             // flag == 1: LS电机读取操作
             if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 1)
@@ -118,7 +132,7 @@ static void send_thread_entry(void *parameter)
             // flag == 0: LS电机写操作
             else if (messageStack.can_msg.msgType == MSG_LS_CHAIN_CTRL && messageStack.can_msg.flag == 0)
             {
-                int sendFlag = 0;
+                
                 // rt_sem_take(modbus_signal, 2000);
                 switch (messageStack.can_msg.index)
                 {
@@ -378,6 +392,39 @@ int modbus_send_till_recv(uint16_t slave_addr, uint16_t reg_addr, uint16_t val)
 
     return 0;
 }
+
+/*
+* @brief 利用aglie_modbus和485协议发送功能码06的报文，并接收返回以判断正确性
+* 
+* @param slave_addr 从站地址
+* @param reg_addr 寄存器地址
+* @param val 写入值
+* 
+* @return 写入结果：0为成功，否则失败
+* */
+int modbus_send_32t_till_recv(uint16_t slave_addr, uint16_t reg_addr, int val)
+{
+    int sendLen,recLen;
+    
+    rt_thread_delay(1); // 延时1ms，确保线程有时间调度
+    // rt_sem_take(modbus_signal, 2000); //信号量获取
+    agile_modbus_set_slave(ctx, slave_addr);
+    
+    //modbus发送并接收
+    sendLen = agile_modbus_serialize_write_register(ctx, reg_addr, val);
+    recLen = rs485_send_then_recv(hinst, ctx->send_buf, sendLen, ctx->read_buf, ctx->read_bufsz);
+    
+    // rt_sem_release(modbus_signal); // 信号量释放
+
+    // 根据接收结果判断是否通信成功
+    if (recLen <= 0)
+    {
+        return 1;
+    }
+
+    return 0;
+}
+
 
 /*
 * @brief 读取modbus特定从站、寄存器的16位整型
