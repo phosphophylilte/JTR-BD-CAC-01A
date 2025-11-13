@@ -34,7 +34,7 @@ typedef enum {
     MSG_CHAIN_RUNNING_STATUS, // 传输链条运行状态
     MSG_TEMP_WARN,            // 温度警告
 
-    MSG_MODBUS_MOTOR_REG6000, // 模式选择
+    MSG_MODBUS_MOTOR_REG6000=19, // 模式选择
     MSG_MODBUS_MOTOR_REG6001, // 目标速度
     MSG_MODBUS_MOTOR_REG6003, // 回零模式
     MSG_MODBUS_MOTOR_REG6004, // 加速度
@@ -51,7 +51,11 @@ typedef enum {
     MSG_MODBUS_POWER_READ_VOLTAGE, //获取电源输出电压
     MSG_MODBUS_POWER_READ_CURRENT, //获取电源输出电流
     MSG_MODBUS_POWER_READ_POWER,   //获取电源输出功率
-    MSG_PID_OUT_REPORT,            //PID上报检测
+    MSG_MODBUS_POWER_READ_STATUS,  //获取电源输出状态
+
+    MSG_MODBUS_POWER_READ_TIME, //读取电源加热累计时间
+    MSG_MODBUS_POWER_READ_STATUS, //控制电源开始计时
+    MSG_MODBUS_POWER_READ_ACC_POWER, // 获取电源累积功率
 
     MSG_HD_FAN_CTRL = 101,   // hd风扇控制
     MSG_HD_CHAIN_CTRL = 102, // hd链速控制

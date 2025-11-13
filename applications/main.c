@@ -46,7 +46,7 @@ struct rt_messagequeue modbus_rx_queue;
 struct rt_messagequeue modbus_tx_queue;
 rt_sem_t modbus_signal = RT_NULL;
 rt_uint8_t msg_pool[2048];
-rt_uint8_t msg_pool2[2048];
+rt_uint8_t msg_pool2[4096];
 rt_uint8_t msg_pool3[2048];
 
 extern agile_modbus_rtu_t ctx_rtu;
@@ -61,7 +61,7 @@ int main(void)
 {
     CAN_DATA MessageCAN;
     CAN_DATA MessageHeartBeat;
-    CAN_DATA MessageStack;
+    CAN_DATA MessageStack; 
 
     rt_pin_mode(rt_pin_get("PB.5"), PIN_MODE_INPUT);
     rt_pin_mode(MCU_CAN_AD0, PIN_MODE_INPUT);

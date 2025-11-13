@@ -103,7 +103,7 @@ static void can_tx_thread(void *parameter)
             rt_device_write(can_dev, 0, &txmsg, sizeof(txmsg)); 
         }
 
-        rt_thread_mdelay(100);
+        rt_thread_mdelay(50);
     }
     
 }

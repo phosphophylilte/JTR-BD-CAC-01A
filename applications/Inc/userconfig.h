@@ -13,7 +13,7 @@
 #include <rtdbg.h>
 #include <rs485.h>
 #include <string.h>
-
+#include "agile_modbus.h"
 
 /* ------------------------------- User Define ------------------------------ */
 #define DBG_ENABLE
@@ -34,7 +34,7 @@ extern struct rt_messagequeue can_rx_queue;
 extern struct rt_messagequeue can_tx_queue;
 extern struct rt_messagequeue modbus_tx_queue;
 extern rt_uint8_t msg_pool[2048];
-extern rt_uint8_t msg_pool2[2048];
+extern rt_uint8_t msg_pool2[4096];
 extern rt_uint8_t msg_pool3[2048];
 extern rt_sem_t modbus_signal;
 extern uint8_t userRegValue[2];
