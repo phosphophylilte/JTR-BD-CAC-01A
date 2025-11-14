@@ -54,7 +54,7 @@ typedef enum {
     MSG_MODBUS_POWER_READ_STATUS,  //获取电源输出状态
 
     MSG_MODBUS_POWER_READ_TIME, //读取电源加热累计时间
-    MSG_MODBUS_POWER_READ_STATUS, //控制电源开始计时
+    MSG_MODBUS_POWER_READ_START, //控制电源开始计时
     MSG_MODBUS_POWER_READ_ACC_POWER, // 获取电源累积功率
 
     MSG_HD_FAN_CTRL = 101,   // hd风扇控制
@@ -75,7 +75,7 @@ typedef union {
     uint8_t index;
     uint8_t dataBytes[4];
   } can_msg;
-}CAN_DATA;
+} CAN_DATA;
 
 typedef struct
 {

@@ -6,18 +6,18 @@ SET(CMAKE_SYSTEM_PROCESSOR cortex-m4)
 
 SET(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
-SET(CMAKE_C_COMPILER "E:/env-windows-v2.0.0/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-gcc.exe")
-SET(CMAKE_ASM_COMPILER "E:/env-windows-v2.0.0/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-gcc.exe")
+SET(CMAKE_C_COMPILER "D:/RTT/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-gcc.exe")
+SET(CMAKE_ASM_COMPILER "D:/RTT/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-gcc.exe")
 SET(CMAKE_C_FLAGS " -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -Dgcc -O0 -gdwarf-2 -g")
 SET(CMAKE_ASM_FLAGS " -c -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -x assembler-with-cpp -Wa,-mimplicit-it=thumb  -gdwarf-2")
 SET(CMAKE_C_COMPILER_WORKS TRUE)
 
-SET(CMAKE_CXX_COMPILER "E:/env-windows-v2.0.0/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-g++.exe")
+SET(CMAKE_CXX_COMPILER "D:/RTT/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-g++.exe")
 SET(CMAKE_CXX_FLAGS " -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -Dgcc -O0 -gdwarf-2 -g")
 SET(CMAKE_CXX_COMPILER_WORKS TRUE)
 
-SET(CMAKE_OBJCOPY "E:/env-windows-v2.0.0/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-objcopy.exe")
-SET(CMAKE_SIZE "E:/env-windows-v2.0.0/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-size.exe")
+SET(CMAKE_OBJCOPY "D:/RTT/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-objcopy.exe")
+SET(CMAKE_SIZE "D:/RTT/env-windows/tools/bin/../../tools/gnu_gcc/arm_gcc/mingw/bin/arm-none-eabi-size.exe")
 
 SET(CMAKE_EXE_LINKER_FLAGS " -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -ffunction-sections -fdata-sections -Wl,--gc-sections,-Map=rt-thread.map,-cref,-u,Reset_Handler -T ${CMAKE_SOURCE_DIR}/board/linker_scripts/link.lds -Wl,--gc-sections,--print-memory-usage")
 
@@ -68,13 +68,14 @@ ADD_DEFINITIONS(
 
 SET(PROJECT_SOURCES
 	packages/agile_modbus-v1.1.2/src/agile_modbus_tcp.c
-	packages/agile_modbus-v1.1.2/src/agile_modbus_rtu.c
 	packages/agile_modbus-v1.1.2/util/agile_modbus_slave_util.c
+	packages/agile_modbus-v1.1.2/src/agile_modbus_rtu.c
 	packages/agile_modbus-v1.1.2/src/agile_modbus.c
 	applications/main.c
+	applications/user_modbus.c
+	applications/modbus_to_can_handle.c
 	applications/user_can.c
 	applications/user_flash.c
-	applications/user_modbus.c
 	rt-thread/components/libc/compilers/common/cctype.c
 	rt-thread/components/libc/compilers/common/cstdlib.c
 	rt-thread/components/libc/compilers/common/cstring.c
@@ -82,13 +83,13 @@ SET(PROJECT_SOURCES
 	rt-thread/components/libc/compilers/common/cunistd.c
 	rt-thread/components/libc/compilers/common/cwchar.c
 	rt-thread/components/libc/compilers/newlib/syscalls.c
-	packages/crclib-v1.02/src/crc32_ex.c
-	packages/crclib-v1.02/src/crc8.c
-	packages/crclib-v1.02/src/crc16_ex_sample.c
-	packages/crclib-v1.02/src/crc8_ex.c
 	packages/crclib-v1.02/src/crc16_ex.c
-	packages/crclib-v1.02/src/crc16.c
+	packages/crclib-v1.02/src/crc16_ex_sample.c
 	packages/crclib-v1.02/src/crc32.c
+	packages/crclib-v1.02/src/crc8.c
+	packages/crclib-v1.02/src/crc8_ex.c
+	packages/crclib-v1.02/src/crc32_ex.c
+	packages/crclib-v1.02/src/crc16.c
 	rt-thread/components/drivers/can/can.c
 	rt-thread/components/drivers/core/device.c
 	rt-thread/components/drivers/ipc/completion_comm.c
@@ -110,10 +111,10 @@ SET(PROJECT_SOURCES
 	libraries/HAL_Drivers/drivers/drv_usart.c
 	libraries/HAL_Drivers/drv_common.c
 	libraries/STM32F4xx_HAL/CMSIS/Device/ST/STM32F4xx/Source/Templates/gcc/startup_stm32f407xx.s
+	rt-thread/components/fal/src/fal.c
 	rt-thread/components/fal/src/fal_partition.c
 	rt-thread/components/fal/src/fal_flash_stm32f2_port.c
 	rt-thread/components/fal/src/fal_flash.c
-	rt-thread/components/fal/src/fal.c
 	rt-thread/components/fal/src/fal_rtt.c
 	rt-thread/src/clock.c
 	rt-thread/src/components.c
@@ -136,31 +137,31 @@ SET(PROJECT_SOURCES
 	rt-thread/libcpu/arm/common/showmem.c
 	rt-thread/libcpu/arm/cortex-m4/context_gcc.S
 	rt-thread/libcpu/arm/cortex-m4/cpuport.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.c
 	libraries/STM32F4xx_HAL/CMSIS/Device/ST/STM32F4xx/Source/Templates/system_stm32f4xx.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ramfunc.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_uart.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cec.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_gpio.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_can.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rng.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_crc.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_flash_ex.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp.c
 	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rcc.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr_ex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cortex.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_rng.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_usart.c
-	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_crc.c
-	packages/rs485-v1.06/src/rs485_sample_master.c
-	packages/rs485-v1.06/src/rs485.c
-	packages/rs485-v1.06/src/rs485_sample_slave.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_pwr.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_dma_ex.c
+	libraries/STM32F4xx_HAL/STM32F4xx_HAL_Driver/Src/stm32f4xx_hal_cryp_ex.c
 	packages/rs485-v1.06/src/rs485_test.c
+	packages/rs485-v1.06/src/rs485_sample_master.c
+	packages/rs485-v1.06/src/rs485_sample_slave.c
+	packages/rs485-v1.06/src/rs485.c
 	packages/rt_vsnprintf_full-latest/rt_vsnprintf.c
 	rt-thread/components/utilities/ulog/ulog.c
 	rt-thread/components/utilities/ulog/backend/console_be.c
@@ -184,3 +185,9 @@ ADD_CUSTOM_COMMAND(TARGET ${CMAKE_PROJECT_NAME}.elf POST_BUILD
 if(EXISTS ${CMAKE_CURRENT_SOURCE_DIR}/custom.cmake)
 include(${CMAKE_CURRENT_SOURCE_DIR}/custom.cmake)
 endif()
+    # 修改时间: 2025-11-14 11:54:40 (本地时间)
+add_custom_target(
+    d
+    COMMAND openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program rtthread.elf verify reset; shutdown"
+    COMMENT "Flashing STM32F4 with OpenOCD"
+)
